@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search by location | Microsoft Cognitive</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/css/uikit.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/js/uikit.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/js/uikit-icons.min.js"></script>
+  <link rel="stylesheet" href="../main_style.css" />
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <script type="text/javascript" src="../exif.js"></script>
+
+  <script>
+      function convertToDegrees(ref, degrees, minutes, seconds) { //exif data given in degrees/mins/seconds, convert to just degrees
+          var newMinutes = minutes + seconds / 60;
+          var newDegrees = degrees + newMinutes / 60;
+          if (ref.toLowerCase() == "s" || ref.toLowerCase() == "w") {
+            newDegrees = -newDegrees;
+          }
+          return newDegrees;
+        }
+
+      function getExif() {
+        images = document.getElementsByTagName("img"); //collect all images tag
+        for (i = 0; i<images.length; i++) { //extract exif data in a loop
+          var img = images[i];
+
+          EXIF.getData(img, function() {
+              var latRef = EXIF.getTag(this, "GPSLatitudeRef");
+              var lat = EXIF.getTag(this, "GPSLatitude");
+              var formattedLat = convertToDegrees(latRef, lat[0], lat[1], lat[2])
+
+              var longRef = EXIF.getTag(this, "GPSLongitudeRef");
+              var long = EXIF.getTag(this, "GPSLongitude");
+              var formattedLong = convertToDegrees(longRef, long[0], long[1], long[2])
+
+              var marker = new google.maps.Marker({ //mark locations on map
+                position: {lat: formattedLat, lng: formattedLong},
+                map: map
+              });
+          });
+        }
+      }
+
+      function initMap() {
+        getExif();
+        var location = {lat: 51.5358331, lng: -0.1603134}; //initialise map with arbitrary location, possbile upgrade with first geotag as center location
+        map = new google.maps.Map(document.getElementById('Map'), {
+          zoom: 10,
+          center: location
+        });
+        var marker = new google.maps.Marker({
+          position: location,
+          map: map
+        });
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBUfeweOkyjviCYBNlYCmQ-yR-1jHkfVg&callback=initMap">
+    </script>
+</head>
+
+
+<body onload='loadMapScenario();'>
+<div uk-sticky="sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky">
+<div class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a href="../main.html" uk-icon="icon: arrow-left; ratio:2"></a>
+    </div>
+
+</div>
+</div>
+
+<div class="uk-margin" align="middle">
+        <div class="uk-inline">
+            <span class="uk-form-icon uk-form-icon-flip" uk-icon="icon: search" align="middle"></span>
+            <input class="uk-input" type="text">
+        </div>
+    </div>
+
+
+<div id='printoutPanel'></div>
+<div id='Map' style='width: 100vw; height: 50vh;'></div>
+
+
+<p></p>
+<div class="uk-visible-toggle">
+<ul uk-accordion>
+    <li class="uk-open">
+        <a class="uk-accordion-title" href="#">London, United Kingdom</a>
+        <div class="uk-accordion-content">
+          <p></p>
+          <div class="uk-card uk-card-default uk-grid-collapse uk-child-width-1-2@s uk-margin" uk-grid>
+              <div class="uk-card-media-left uk-cover-container">
+                  <img src="../images/img/sashimi_seattle.jpg" alt="" uk-cover>
+                  <canvas width="600" height="400"></canvas>
+              </div>
+              <div>
+                  <div class="uk-card-body">
+                      <h3 class="uk-card-title">Food2</h3> 25/01/2018
+                      <p>Feeling: 😀<br></br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+                      <p></p>
+                      <ul class="uk-hidden-hover uk-iconnav">
+                                         <li><a href="#" uk-icon="icon: pencil"></a></li>
+                                         <li><a href="#" uk-icon="icon: copy"></a></li>
+                                         <li><a href="#" uk-icon="icon: trash"></a></li>
+                                     </ul>
+                  </div>
+              </div>
+          </div>
+        </div>
+    </li>
+    <li>
+
+</ul>
+</div>
+
+<div class="uk-visible-toggle">
+<ul uk-accordion>
+    <li class="uk-open">
+        <a class="uk-accordion-title" href="#">London, United Kingdom</a>
+        <div class="uk-accordion-content">
+          <div class="uk-card uk-card-default uk-grid-collapse uk-child-width-1-2@s uk-margin" uk-grid>
+              <div class="uk-card-media-left uk-cover-container">
+                  <img src="../images/img/mountains_idaho.jpg" alt="" uk-cover>
+                  <canvas width="600" height="400"></canvas>
+              </div>
+              <div>
+                  <div class="uk-card-body">
+                      <h3 class="uk-card-title">Food2</h3> 25/01/2018
+                      <p>Feeling: 😀<br></br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+                      <p></p>
+                      <ul class="uk-hidden-hover uk-iconnav">
+                                         <li><a href="#" uk-icon="icon: pencil"></a></li>
+                                         <li><a href="#" uk-icon="icon: copy"></a></li>
+                                         <li><a href="#" uk-icon="icon: trash"></a></li>
+                                     </ul>
+                  </div>
+              </div>
+          </div>
+        </div>
+    </li>
+    <li>
+
+</ul>
+</div>
+
+
+
+</body>

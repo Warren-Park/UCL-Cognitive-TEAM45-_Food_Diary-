@@ -1,0 +1,36 @@
+html
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    title Food Diary | Card Server
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/css/uikit.min.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/js/uikit.min.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/js/uikit-icons.min.js')
+    link(rel='stylesheet', href='/stylesheets/main_style.css')
+    link(href='https://fonts.googleapis.com/css?family=Lato', rel='stylesheet')
+    link(rel='shortcut icon', type='image/x-icon', href='/favicon.ico')
+  body
+    div(uk-sticky='sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky')
+      .uk-navbar-container(uk-navbar='')
+        .uk-navbar-left
+          a.uk-navbar-item.uk-logo(href='https://azure.microsoft.com/en-gb/services/cognitive-services/')
+            img#logo(src='/images/img/logo.png', width='30vh', height='30vh', alt='logo')
+            |   Microsoft Cognitive | Server
+        .uk-navbar-right
+          ul.uk-navbar-nav(uk-navbar='')
+            li
+              a(href='#', uk-icon='icon: question')
+              .uk-navbar-dropdown
+                ul.uk-nav.uk-navbar-dropdown-nav
+                  li.uk-active
+                    a(href='#') Visit food.azurewebsites.net
+    div(uk-parallax='viewport: 0.5')
+    div(id="bg")
+      img(src='/images/img/ai.jpg' id="bg")     
+      p
+      p
+      h1(style='color:White;', align='middle')  Check the status of the server. 
+      p
+      p
+      button(class="uk-button uk-button-primary uk-button-large uk-align-center") Current Status : Normal
+

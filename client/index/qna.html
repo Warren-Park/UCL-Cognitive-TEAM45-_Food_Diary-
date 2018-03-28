@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Q&A | Microsoft Cognitive</title>
+  <link rel="stylesheet" href="../uikit-3/css/uikit.min.css" />
+  <script src="../uikit-3/js/uikit.min.js"></script>
+  <script src="../uikit-3/js/uikit-icons.min.js"></script>
+  <link rel="stylesheet" href="../main_style.css" />
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+
+  <!-- all p tages have huge natural padding changing in main css file may affect other things so do local overwite-->
+  <style>
+    p {
+      padding-top: 0px;
+    }
+  </style>
+
+</head>
+
+
+<body>
+<div uk-sticky="sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky">
+<div class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a href="../index.html" uk-icon="icon: arrow-left; ratio:2"></a>
+    </div>
+
+</div>
+</div>
+
+
+
+<p></p>
+<h3 style="color:black;" align="middle">Frequently Asked Questions</h3>
+<!-- <p></p> -->
+
+<form id="searchForm" class="uk-search uk-search-default uk-align-center uk-width-xlarge">
+    <a class="uk-search-icon-flip" id="search_btn" onclick="post()" uk-search-icon></a>
+    <input id="question" class="uk-search-input" name="hello" type="text" placeholder="Search question...">
+</form>
+
+
+<div class="uk-text-center">
+<p id="failed-query-display"></p> <!-- used to display "Sorry, ..." message-->
+</div>
+
+
+<div style="width:50vw" class="uk-align-center">
+<ul uk-accordion class="max-width="50%"">
+  <li id="account">
+      <a class="uk-accordion-title" href="#">How do I create an account?</a>
+      <div class="uk-accordion-content">
+          <p>Our logins are based on Microsoft accounts, so please create a Microsoft account.</p>
+      </div>
+  </li>
+  <li id="entries">
+      <a class="uk-accordion-title" href="#">How many entries can I have?</a>
+      <div class="uk-accordion-content">
+          <p>Unlimited!</p>
+      </div>
+  </li>
+  <li id="cloud-storage">
+      <a class="uk-accordion-title" href="#">What cloud services are supported?</a>
+      <div class="uk-accordion-content">
+          <p>Currently, we support Dropbox, OneDrive and Google Drive.</p>
+      </div>
+  </li>
+  <li id="edit-card">
+      <a class="uk-accordion-title" href="#">Can I edit the generated card post if I think it is inaccurate?</a>
+      <div class="uk-accordion-content">
+          <p>Sure! At the bottom of each post, there will be an icon for you to do so.</p>
+      </div>
+  </li>
+  <li id="application-work">
+      <a class="uk-accordion-title" href="#">How does the application work?</a>
+      <div class="uk-accordion-content">
+          <p>The application looks at the new food pictures you uploaded into your cloud (i.e. Dropbox etc) and analyse the picture to automatically create a card post.</p>
+      </div>
+  </li>
+  <li id="security">
+      <a class="uk-accordion-title" href="#">Is my data safe and secure?</a>
+      <div class="uk-accordion-content">
+          <p>Yes, we only store the data which we require such as the pictures to generate the card post. When you delete your account, our server automatically wipes all the data associated with your account.</p>
+      </div>
+  </li>
+</ul>
+
+</div>
+
+
+</body>
+<script>
+document.getElementById("question").addEventListener("keyup",function(event){
+  event.preventDefault();
+  if(event.keyCode==13||event.which==13){
+    document.getElementById("search_btn").click();
+  }
+});
+</script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="qna.js"></script>

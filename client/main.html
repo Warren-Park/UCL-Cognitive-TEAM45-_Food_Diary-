@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Food Diary | Microsoft Cognitive</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/bootstrap/3/css/bootstrap.css" />
+  <link rel="stylesheet" href="uikit-3/css/uikit.min.css" />
+  <script src="uikit-3/js/uikit.js"></script>
+  <script src="uikit-3/js/uikit-icons.min.js"></script>
+  <link rel="stylesheet" href="main_style.css" />
+  <script src="Chart.js"></script>
+  <script src="node_modules/azure-storage/browser/bundle/azure-storage.common.js"></script>
+  <script src="node_modules/azure-storage/browser/bundle/azure-storage.blob.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+  <script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+  <script type="text/javascript" src="https://js.live.net/v7.2/OneDrive.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.js"></script>
+  <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
+  <script src="https://unpkg.com/dropbox/dist/DropboxTeam-sdk.min.js"></script>
+  <script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="YOUR-APP-KEY"></script>
+  <script src="utils.js"></script>
+
+
+
+<script type="text/javascript">
+
+function initMap() {
+  //This function initialises the Google Maps.
+      var location = [["0","No results found",51.5358331,-0.1603134]];
+      var param="mode=MAP_VIEW&UUID="+uuid.toString();
+      http_request(param,function(res){
+        if(res=="ERROR"){
+          alert("Cannot load Google Maps");
+        }else{
+          location=JSON.parse(res);
+        }
+        console.log(location[0][2],location[0][3]);
+        var map = new google.maps.Map(document.getElementById('Map'), {
+          zoom: 10,
+          center: new google.maps.LatLng(location[0][2],location[0][3]),
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+        var infowindow=new google.maps.InfoWindow();
+        var marker;
+        for(var i=0;i<location.length;i++){
+          marker=new google.maps.Marker({
+            position: new google.maps.LatLng(location[i][2],location[i][3]),
+            map: map
+          });
+          google.maps.event.addListener(marker,'click',(function(marker,i){
+            return function(){
+              infowindow.setContent(location[i][1]);
+              infowindow.open(map,marker);
+              var params="mode=MAP_SEARCH&UUID="+uuid.toString()+"&latitude="+location[i][2].toString()+"&longitude="+location[i][3].toString();
+              http_request(params,function(res){
+                if(res=="ERROR"){
+                  alert("No cards found.");
+                }else{
+                  updater(uuid,res);
+                }
+
+              });
+            }
+          })(marker,i));
+        }
+      });
+
+    }
+//Date range picker for date search.
+    $(function() {
+
+    var start = moment();
+    var end = moment();
+
+    function report(start, end) {
+        $('#date_picker span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    }
+
+    $('#date_picker').daterangepicker({
+        startDate: start,
+        endDate: end,
+        ranges: {
+           'Today': [moment(), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'This Month': [moment().startOf('month'), moment().endOf('month')],
+           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    }, report);
+
+    report(start, end);
+
+});
+//Date range picker for card edits.
+$(function(){
+  var start=moment();
+function sgl_report(start){
+  $('#date_picker_sgl span').html(start.format('MMMM D, YYYY'));
+}
+
+$('#date_picker_sgl').daterangepicker({
+  singleDatePicker: true,
+  showDropdowns: true
+}, sgl_report);
+sgl_report(start);
+});
+
+
+
+
+  </script>
+  <script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=YOUR-APP-KEY&callback=initMap">
+  </script>
+
+
+
+</head>
+
+  <body>
+    <div id="edit_modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Modify card</h2>
+        <div>
+        <div>
+          <div class="uk-margin">
+            Title
+            <input class="uk-input" type="text" id="edit_title" placeholder="Title">
+        </div>
+        <div class="uk-margin">
+          <div id="date_picker_sgl" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+      <i class="uk-margin-small-right" uk-icon="icon: calendar"></i>&nbsp;
+      <span id="edit_date"></span> <b class="caret"></b>
+       </div>
+      </div>
+      <div class="uk-margin">
+        Rating
+        <input class="uk-input" id="edit_star" type="text" placeholder="Stars (out of 5)">
+    </div>
+    <div class="uk-margin">
+      Feeling
+            <select class="uk-select" id="edit_feeling">
+                <option>😀</option>
+                <option>😠</option>
+                <option>🤬</option>
+                <option>🤮</option>
+                <option>😨</option>
+                <option>😐</option>
+                <option>😭</option>
+                <option>🤭</option>
+            </select>
+        </div>
+  <div class="uk-margin">
+    Address
+    <input class="uk-input" id="edit_address" type="text" placeholder="Address">
+</div>
+<div class="uk-margin">
+  Tags
+  <input class="uk-input" id="edit_tags" type="text" placeholder="Tags">
+</div>
+<div class="uk-margin">
+  Comments
+  <input class="uk-input" id="edit_comments" type="text" placeholder="Comments">
+</div>
+Allergens
+<div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_gluten" value="Gluten"> Gluten</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_crutaceans" value="Crutaceans"> Crutaceans</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_eggs" value="Eggs"> Eggs</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_fish" value="Fish"> Fish</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_peanuts" value="Peanuts"> Peanuts</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_soybean" value="Soybeans"> Soybeans</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_milk" value="Milk"> Milk</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_nuts" value="Nuts"> Nuts</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_celery" value="Celery"> Celery</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_mustard" value="Mustard"> Mustard</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allegens_sesame" value="Sesame"> Sesame</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_sulphur" value="Sulphur dioxide/sulphites"> Sulphur dioxide/sulphites</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_lupin" value="Lupin"> Lupin</label>
+            <label><input class="uk-checkbox" type="checkbox" id="edit_allergens_molluscs" value="Molluscs"> Molluscs</label>
+        </div>
+        </div>
+        <br></br>
+        <br></br>
+        <p class="uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button" id="signout-button">Cancel</button>
+            <button class="uk-button uk-button-primary uk-modal-close" onclick="edit_submit();" type="button">Continue</button>
+        </p>
+        </div>
+        </div>
+
+    </div>
+    <div id="graph_modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Your Feeling trend</h2>
+        <div>
+        <canvas id="graph_body" width="2000vw" height="2000vw"></canvas>
+        </div>
+        </div>
+
+    </div>
+    <div id="suggestion_modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Suggestions</h2>
+        <div>
+        <div id="suggestion_body"></div>
+        </div>
+        </div>
+
+    </div>
+    <div id="drive" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Select a food image and a face image.</h2>
+        <ul id="drive-content" class="uk-align-center">
+          <div id="message1_g"> Select food image</div>
+          <img id="image_food_window_g" class="display:block;" width="200" />
+          <button onclick="onApiLoad('food')" class="uk-button-default"><span class="uk-margin-small-right" uk-icon="icon: google"></span>Select from Google Drive</button>
+          <div id="message2_g">Select face image</div>
+          <img id="image_face_window_g" class="display:block;" width="200" />
+          <button onclick="onApiLoad('face')" class="uk-button-default"><span class="uk-margin-small-right" uk-icon="icon: google"></span>Select from Google Drive</button>
+        </ul>
+        <br></br>
+        <br></br>
+        <p class="uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button" id="signout-button">Cancel</button>
+            <button class="uk-button uk-button-primary uk-modal-close" onclick="url_source_storage.submit();" type="button">Continue</button>
+        </p>
+        </div>
+
+    </div>
+<div id="odrive" uk-modal>
+<div class="uk-modal-dialog uk-modal-body">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <h2 class="uk-modal-title">Select a food image and a face image.</h2>
+    <ul id="drive-content" class="uk-align-center">
+      <div id="message1_o"> Select food image</div>
+      <img id="image_food_window" class="display:block;" width="200" />
+      <button class="uk-button uk-button-default" onclick="launchOneDrivePicker('food');" type="button">Select food image</button>
+      <div id="message2_o">Select face image</div>
+      <img id="image_face_window" class="display:block;" width="200" />
+      <button class="uk-button uk-button-default" onclick="launchOneDrivePicker('face');" type="button">Select face image</button>
+    </ul>
+    <br></br>
+    <br></br>
+    <p class="uk-text-right">
+        <button class="uk-button uk-button-default uk-modal-close" type="button" id="signout-button">Cancel</button>
+        <button class="uk-button uk-button-primary uk-modal-close" onclick="url_source_storage.submit();" type="button">Continue</button>
+    </p>
+    </div>
+
+</div>
+<div id="ddrive" uk-modal>
+<div class="uk-modal-dialog uk-modal-body">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <h2 class="uk-modal-title">Select a food image and a face image.</h2>
+    <ul id="drive-content" class="uk-align-center">
+      <div id="message1_d"> Select food image</div>
+      <img id="image_food_window_d" class="display:block;" width="200" />
+      <div id="dropbox-container"></div>
+      <div id="message2_d">Select face image</div>
+      <img id="image_face_window_d" class="display:block;" width="200" />
+      <div id="dropbox-container2"></div>
+    </ul>
+    <br></br>
+    <br></br>
+    <p class="uk-text-right">
+        <button class="uk-button uk-button-default uk-modal-close" type="button" id="signout-button">Cancel</button>
+        <button class="uk-button uk-button-primary uk-modal-close" onclick="url_source_storage.submit();" type="button">Continue</button>
+    </p>
+    </div>
+
+</div>
+
+</div>
+<div id="date" uk-modal>
+<div class="uk-modal-dialog uk-modal-body">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <h2 class="uk-modal-title">Specify the search start date and the end date.</h2>
+    <ul id="drive-content" align="middle">
+      <p2>
+        <div id="date_picker" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+    <i class="uk-margin-small-right" uk-icon="icon: calendar"></i>&nbsp;
+    <span></span> <b class="caret"></b>
+     </div>
+      </p2>
+    </ul>
+    <br></br>
+    <br></br>
+    <p class="uk-text-right">
+        <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+        <button class="uk-button uk-button-primary uk-modal-close" onclick="date_selected();" type="button">Continue</button>
+    </p>
+</div>
+</div>
+
+      <div uk-sticky="sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky">
+    <nav class="uk-navbar-container" uk-navbar>
+
+        <div class="uk-navbar-left">
+
+            <ul class="uk-navbar-nav">
+                <li>
+                    <a href=""><span class="uk-margin-small-right" uk-icon="icon: menu"></span>&nbsp;Menu&nbsp;</a>
+                    <div class="uk-navbar-dropdown" uk-drop="boundary: !nav; boundary-align: true; pos: bottom-justify;">
+                      <ul class="uk-nav uk-navbar-dropdown-nav">
+                          <li class="uk-nav-header"><span class="uk-margin-small-right" uk-icon="icon: star"></span>Suggestions</li>
+                          <li><a href="#suggestion_modal" id="suggestion_button" uk-toggle><span class="glyphicon glyphicon-thumbs-up uk-margin-small-right"></span> View suggestions for you.</a></li>
+                          <li><a href="#graph_modal" id="graph_btn" uk-toggle><span class="glyphicon glyphicon-signal uk-margin-small-right"></span>Your feeling trends</a></li>
+                    </div>
+                </li>
+                <li>
+
+
+
+                    <a href="" uk-icon="icon: plus"></a>
+                    <div class="uk-navbar-dropdown">
+                      <ul class="uk-nav uk-navbar-dropdown-nav">
+                          <li class="uk-active"><a href="">Add from the Cloud Storage</a></li>
+                          <li><a href="#odrive" id="odrive_btn" uk-toggle><span class="uk-margin-small-right" uk-icon="icon: cloud-download"></span>OneDrive</a></li>
+                          <li><a href="#drive" id="gdrive_button" uk-toggle><span class="uk-margin-small-right" uk-icon="icon: google"></span>Google Drive</a></li>
+                          <li><a href="#ddrive" id="db_button" uk-toggle><span class="uk-margin-small-right" uk-icon="icon: cloud-download"></span>Dropbox</a></li>
+                      </ul>
+                </li>
+            </ul>
+
+        </div>
+        <div class="uk-navbar-center uk-visible@m" >
+                <div class="uk-inline">
+                    <a class="uk-form-icon uk-form-icon-flip" id="pc_search_btn" onclick="search_function();" uk-icon="icon: search" align="middle"></a>
+                    <input class="uk-input uk-form-width-large" id="PC_search" type="text" placeholder="Search the cards...">
+                </div>
+                <button class="uk-button uk-button-default" type="button">OPTIONS</button>
+                <div uk-dropdown="animation: uk-animation-slide-top-small; duration: 700">
+                <ul class="uk-nav uk-dropdown-nav">
+                  <li class="uk-active"><a href="">Search options</a></li>
+                  <li><a href="#date" uk-toggle><span class="uk-margin-small-right" uk-icon="icon: calendar"></span>By date</a></li>
+                  <li><a onclick="open_map();"><span class="uk-margin-small-right" uk-icon="icon: location"></span>By location</a></li>
+
+               </ul>
+             </div>
+            </div>
+
+        <div class="uk-navbar-right">
+
+            <ul class="uk-navbar-nav">
+                <li>
+                    <a href="" id='uname'><div id="uname_text">Lorem, Ipsum </div>&nbsp;
+                      <div class="uk-grid-small uk-flex-middle" uk-grid>
+            <div class="uk-width-auto">
+                <img class="uk-border-circle" id="uname_image" width="40" height="40" src="img/logo.png">
+            </div>
+          </div>
+        </a>
+                    <div class="uk-navbar-dropdown">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li class="uk-active"><a href=""><span class="uk-margin-small-right" uk-icon="icon: user"></span>Account</a></li>
+                            <div class="uk-offcanvas-content">
+                            <li><a uk-toggle="target: #offcanvas-flip"><span class="uk-margin-small-right" uk-icon="icon: settings"></span> Settings</a></li>
+                            <div id="offcanvas-flip" uk-offcanvas="flip: true; mode:push; overlay: true;">
+                                 <div class="uk-offcanvas-bar">
+
+                                 <button class="uk-offcanvas-close" type="button" uk-close></button>
+
+                                 <h3>Account settings</h3>
+
+                                 <p></p>
+                                 <div class="uk-child-width-1-2@s" uk-grid>
+
+    <div>
+
+
+        <div uk-grid>
+          <div class="uk-width-expand@m">
+              <ul id="component-tab-left" class="uk-switcher">
+                  <li>You need to select images to be uploaded.</li>
+                  <li>The web app will not update any images.</li>
+              </ul>
+          </div>
+            <div class="uk-width-auto@m">
+                <ul class="uk-tab-left" uk-tab="connect: #component-tab-left; animation: uk-animation-fade">
+                    <li><a id="fetch" onclick="mode_false();">Manual fetch</a></li>
+                    <li><a id="do_not_fetch" onclick="mode_true();">Do not fetch</a></li>
+                </ul>
+            </div>
+
+            <div class="uk-inline uk-tab-left">
+                <a class="uk-form-icon uk-form-icon-flip" id="location_btn" onclick="set_location();" uk-icon="icon: check" align="middle"></a>
+                <input class="uk-input" id="location_text" type="text" placeholder="Location">
+            </div> <div class="uk-tab-right">Set the location for the suggestions.</div>
+
+        </div>
+    </div>
+
+    <p></p>
+    <a class="uk-button uk-button-danger uk-align-center" href="#modal" uk-toggle>Delete Account</a>
+    <div id="modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Delete account</h2>
+        <p>If you delete the account, you will no longer be able to access the information generated by this web app.</p>
+        <p class="uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+            <button class="uk-button uk-button-primary uk-modal-close" onclick="ACCOUNT_DELETE();" type="button">Continue</button>
+        </p>
+    </div>
+</div>
+
+
+                                 </div>
+                               </div>
+                            </div>
+                            <li><a type="button" onclick="universal_signout();"><span class="uk-margin-small-right" uk-icon="icon: sign-out"></span> Sign out</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+
+        </div>
+
+    </nav>
+    <nav class="uk-navbar-container uk-hidden@m" uk-navbar>
+      <div class="uk-navbar-center" >
+              <div class="uk-inline">
+                  <a class="uk-form-icon uk-form-icon-flip" id="m_search_btn" onclick="search_function();" uk-icon="icon: search" align="middle"></a>
+                  <input class="uk-input" id="mobile_search" type="text" placeholder="Search the cards..." >
+              </div>
+
+          </div>
+    </nav>
+    <nav class="uk-navbar-container uk-hidden@m" uk-navbar>
+      <div class="uk-navbar-center" >
+    <button class="uk-button uk-button-default" type="button">OPTIONS</button>
+    <div uk-dropdown="animation: uk-animation-slide-top-small; duration: 700">
+    <ul class="uk-nav uk-dropdown-nav">
+      <li class="uk-active"><a href="">Search options</a></li>
+      <li><a href="#date" uk-toggle><span class="uk-margin-small-right" uk-icon="icon: calendar"></span>By date</a></li>
+      <li><a onclick="open_map();"><span class="uk-margin-small-right" uk-icon="icon: location"></span>By location</a></li>
+
+   </ul>
+ </div>
+</div>
+</nav>
+  </div>
+
+</div>
+
+
+
+<div uk-scrollspy="target: > div; cls:uk-animation-fade; delay: 500">
+  <p2></p2>
+<h2 class="uk-heading-primary" align="middle" id="main_title"></h2>
+<div align="middle" id="l_activity_indicator" style="display:none;"><div uk-spinner></div>Loading</div>
+<div id='Map' style='width: 100vw; height: 50vh;display:none;'></div>
+<p2></p2>
+<button id="Map_close" onclick="close_map();" class="uk-close-large uk-align-center" type="button" style="display:none;" uk-close></button>
+<p2></p2>
+<span id="card_number" class="uk-label">0 cards shown</span>
+<br></br>
+<div id="card-field" align="left"></div>
+<div id="NO_CARDS" align="middle">NOTHING TO DISPLAY.</div>
+<a href="" uk-totop uk-scroll class="uk-align-center" align="middle"></a>
+</div>
+</div>
+<div id="copy_modal" uk-modal>
+<div class="uk-modal-dialog uk-modal-body" align="middle">
+    <button class="uk-modal-close-default" type="button" uk-close></button>
+    <h2 class="uk-modal-title">Copy</h2>
+    <input id="not_to_be_displayed" type="text"></input>
+    <a id="actual_copy" uk-icon="copy"></a>
+    <br></br>
+    <br></br>
+    </div>
+
+</div>
+
+
+<p></p>
+
+
+
+
+<script>
+var uuid = "lorem";
+var username="Lorem Ipsum";
+var ms_token="";
+var TOKEN_MS="";
+var g_drive_TOKEN="";
+var g_status="";
+var o_status="";
+var d_status="";
+var food="";
+var face="";
+var face_id="";
+var food_id="";
+var source_food="";
+var source_face="";
+var id_of_conflict="";
+var current_url=window.location.href;
+var activity_i=document.getElementById('activity_indicator');
+var activity_l=document.getElementById('l_activity_indicator');
+var odrive=document.getElementById('odrive');
+var list_view=document.getElementById('drive');
+var odrive_btn=document.getElementById('odrive_btn');
+var food_txt=document.getElementById('food_text');
+var map_view=document.getElementById('Map');
+var p_search=document.getElementById('PC_search');
+var m_search=document.getElementById('mobile_search');
+var l_text=document.getElementById('location_text');
+var map_close=document.getElementById('Map_close');
+var copy_area=document.getElementById('not_to_be_displayed');
+
+
+//CONFIGURE THE WEB APP. LINE 33 and 127 also need to be configured with your Dropbox and Google Maps details.
+var blobUri = 'YOUR-BLOB-URI';
+var SERVER_URL="YOUR-SERVER-URL";
+var DOWNLOAD_SERVER_URL="YOUR-DOWNLOAD-SERVER-URL";
+var MS_CLIENT_ID="YOUR-MICROSOFT-ONEDRIVE-CLIENT-ID";
+var SAS_TOKEN= "YOUR-SAS-TOKEN";
+var GOOGLE_DEVELOPER_KEY="YOUR-GOOGLE-DEVELOPER-KEY";
+var GOOGLE_CLIENT_ID="YOUR-GOOGLE-CLIENT-KEY";
+var GOOGLE_APP_ID="YOUR-GOOGLE-APP-ID";
+
+
+/*######################################################################################################################################################
+
+
+This is the client side web app for the Food Diary web application.
+
+Developed by Warren Park, Wei Tan and Terry Williams.
+Copyright Microsoft 2018. All rights reserved.
+
+
+
+######################################################################################################################################################
+*/
+var mode=false;
+
+//Button or keyboard key click event settings.
+document.getElementById("PC_search").addEventListener("keyup",function(event){
+  event.preventDefault();
+  if(event){
+    document.getElementById("pc_search_btn").click();
+  }
+});
+document.getElementById("suggestion_button").addEventListener("click",function(event){
+  event.preventDefault();
+  if(event){
+    suggest(function(res){
+      console.log(res);
+    });
+  }
+});
+document.getElementById("graph_btn").addEventListener("click",function(event){
+  event.preventDefault();
+  if(event){
+    plot_graph();
+  }
+});
+document.getElementById("actual_copy").addEventListener("click",function(event){
+  event.preventDefault();
+  if(event){
+    actual_copy();
+  }
+});
+document.getElementById("mobile_search").addEventListener("keyup",function(event){
+  event.preventDefault();
+  if(event){
+    document.getElementById("m_search_btn").click();
+  }
+});
+//Return key triggers default location setting.
+document.getElementById("location_text").addEventListener("keyup",function(event){
+  event.preventDefault();
+  if(event.keyCode==13||event.which==13){
+    document.getElementById("location_btn").click();
+  }
+});
+
+
+
+class url_source_storage{
+  static set_food(url,source,contents_url){
+    //Set the food image id or download URL to the variable.
+    source_food=source;
+    if(source=='o'){
+      document.getElementById("image_food_window").src = contents_url;
+      document.getElementById("message1_o").style.display="none";
+    }else if(source=='g'){
+      document.getElementById("image_food_window_g").src = contents_url;
+      document.getElementById("message1_g").style.display="none";
+    }else if(source=='d'){
+      document.getElementById("image_food_window_d").src = contents_url;
+      document.getElementById("message1_d").style.display="none";
+    }
+    food=url;
+  }
+  static set_face(url,source,contents_url){
+    //Set the face image id or download URL to the variable.
+    source_face=source;
+    if(source=='o'){
+      document.getElementById("image_face_window").src = contents_url;
+      document.getElementById("message2_o").style.display="none";
+    }else if(source=='g'){
+      document.getElementById("image_face_window_g").src = contents_url;
+      document.getElementById("message2_g").style.display="none";
+
+    }else if(source=='d'){
+      document.getElementById("image_face_window_d").src = contents_url;
+      document.getElementById("message2_d").style.display="none";
+    }
+    face=url;
+  }
+  static submit(){
+    //This function resets selected image window and submit card creation request.
+      document.getElementById("image_face_window").src = "";
+      document.getElementById("image_food_window").src = "";
+      document.getElementById("message2_o").style.display="block";
+      document.getElementById("message1_o").style.display="block";
+      document.getElementById("image_face_window_g").src = "";
+      document.getElementById("image_food_window_g").src = "";
+      document.getElementById("message2_g").style.display="block";
+      document.getElementById("message1_g").style.display="block";
+      document.getElementById("image_face_window_d").src = "";
+      document.getElementById("image_food_window_d").src = "";
+      document.getElementById("message2_d").style.display="block";
+      document.getElementById("message1_d").style.display="block";
+      if(mode==true){
+        alert("Do not fetch is activated.");
+      }else{
+      console.log("submitted");
+    if(source_food==source_face){
+      processdata(food,face,source_food);
+    }else{
+      alert("You cannot The files should be from the same cloud storage.");
+    }
+  }
+    source_food="";
+    source_face="";
+    food="";
+    face="";
+  }
+
+}
+
+
+function open_map(){
+  //This function opens the map.
+  map_view.style.display="block";
+  map_close.style.display="block";
+  initMap();
+}
+function close_map(){
+  //This function closes the map.
+  map_view.style.display="none";
+  map_close.style.display="none";
+}
+function get_url_params(){
+  //Gets parameters from the URL.
+  var params={};
+  var search = decodeURIComponent( window.location.href.slice( window.location.href.indexOf( '?' ) + 1 ) );
+    var definitions = search.split( '&' );
+
+    definitions.forEach( function( val, key ) {
+        var parts = val.split( '=', 2 );
+        params[ parts[ 0 ] ] = parts[ 1 ];
+    } );
+    console.log(params);
+    if(params["id"]==undefined || params["id"]==null){
+      //Security feature (ACTIVATE WHEN NEEDED.)
+      //alert("Not allowed access.");
+      //window.location=DOWNLOAD_SERVER_URL;
+    }
+
+    return params;
+
+}
+var params=get_url_params();
+if(params["id"]!=undefined&&params["token"]!=undefined&&params["username"]!=undefined){
+  uuid=params["id"];
+  ms_token=params["token"];
+  username=params["username"];
+}
+function page_init(){
+  //This function initialises the window.
+  if(username.charAt(username.length - 1)=="s"){
+    document.getElementById("main_title").innerHTML = username+"' Food Diary";
+  }else{
+    document.getElementById("main_title").innerHTML = username+"'s Food Diary";
+  }
+  document.getElementById("uname_text").innerHTML=username;
+  document.getElementById("uname_image").src="https://apis.live.net/v5.0/"+uuid+"/picture?type=large";
+  var params="mode=LIST&UUID="+uuid;
+  http_request(params,function(res){
+    updater(uuid,res);
+
+  });
+  params="mode=MODE_VIEW&UUID="+uuid.toString();
+  http_request(params,function(res){
+    if(res=="TRUE"){
+      mode=true;
+      document.getElementById("do_not_fetch").class+="uk-active";
+    }else{
+      mode=false;
+      document.getElementById("fetch").class+="uk-active";
+    }
+  });
+  suggest(function(res){
+    console.log(res);
+  });
+
+
+}
+page_init();
+
+
+function date_selected(){
+  //Processes date search.
+  var start=$('#date_picker').data('daterangepicker').startDate.format('YYYY-MM-DD')+" 00:00:00";
+  var end=$('#date_picker').data('daterangepicker').endDate.format('YYYY-MM-DD')+" 23:59:59";
+  var param="mode=DATE&UUID="+uuid.toString()+"&start="+start+"&end="+end;
+  http_request(param,function(res){
+    if(res=="ERROR"){
+      alert("Invalid date input");
+    }else{
+      updater(uuid,res);
+    }
+  });
+
+}
+
+function suggestion_html(res,callback){
+  //This function displays the retrieved suggestions data.
+  res=JSON.parse(res);
+  var html="";
+  var cache="";
+  for(var i=0;i<3;i++){
+    if(res[0]==null){
+      html+="No suggestions at the moment. Try to use another location.";
+    }
+    if(res[i]!=null){
+      html+='<div class="uk-card uk-card-default uk-width-auto">';
+      html+='<div class="uk-card-header">';
+      html+='<div class="uk-grid-small uk-flex-middle" uk-grid>';
+      html+='<div class="uk-width-auto uk-align-center">';
+      html+='<img width="1000vw" height="1000vw" src="'+res[i]["image_url"]+'">';
+      html+='</div>';
+      html+='<div class="uk-width-expand">';
+      html+='</div></div></div>';
+      html+='<div class="uk-card-body">';
+      html+=' <h3 class="uk-card-title uk-margin-remove-bottom">'+res[i]["name"]+'</h3>';
+      html+="Rating: "+res[i]["rating"]+"/5<br></br>";
+      console.log(res[i]);
+      res[i]["categories"].forEach(function(elem){
+        html+=(elem["title"]+" ");
+      });
+      html+="<br></br>Price: "+res[i]["price"]+"<br></br>";
+      html+="Address: <br></br>";
+      res[i]["location"]["display_address"].forEach(function(elem){
+        html+=(elem+"<br></br>");
+      });
+      html+="Phone: "+res[i]["phone"];
+      html+="</div>";
+      html+='<div class="uk-card-footer">';
+      html+='<a href="'+res[i]["url"]+'" target="_blank" class="uk-button uk-button-text">Read more</a>';
+      html+='</div></div><br></br>';
+  }
+  }
+  callback(html);
+
+}
+function mode_true(){
+  //This function sets the mode to be "DO NOT FETCH".
+  var params="mode=MODE&UUID="+uuid.toString();+"&selection=TRUE";
+  http_request(params,function(res){
+    console.log(res);
+  });
+  mode=true;
+}
+function mode_false(){
+  //This function sets the mode to be "MANUAL FETCH".
+  var params="mode=MODE&UUID="+uuid.toString();+"&selection=FALSE";
+  http_request(params,function(res){
+    console.log(res);
+  });
+  mode=false;
+}
+
+function suggest(callback){
+  //This function retrieves the suggestion data from the server.
+  var param="mode=SUGGEST&UUID="+uuid.toString();
+  http_request(param,function(res){
+    suggestion_html(res,function(res){
+      document.getElementById("suggestion_body").innerHTML=res;
+    });
+  });
+
+}
+
+function edit_submit(){
+  //This function submits the edit request.
+  var arr=[];
+  var selected="";
+    $(".uk-checkbox:checked").each(function(){
+      arr.push($(this).val());
+    });
+    if(arr==[]){
+      selected="None";
+    }else{
+      selected=arr.join(',');
+    }
+  var title=encodeURIComponent($('#edit_title').val());
+  var date =$('#date_picker_sgl').data('daterangepicker')["startDate"]["_d"].toISOString().substring(0,10);
+  date=encodeURIComponent(date);
+  var location=encodeURIComponent($('#edit_address').val());
+  var tags=encodeURIComponent($('#edit_tags').val());
+  var comments=encodeURIComponent($('#edit_comments').val());
+  var selected=encodeURIComponent(selected);
+
+
+  var param="mode=MODIFY&UUID="+uuid.toString()+"&card_id="+id_of_conflict.toString()+"&title="+title+"&date="+date+"&star="+$('#edit_star').val()+"&feeling=";
+  param+=($('#edit_feeling').val()+"&location="+location+"&tags="+tags+"&comments="+comments+"&allergens="+selected);
+  http_request(param,function(res){
+    if(res=="ERROR"){
+      alert("MODIFY ERROR");
+    }else{
+      console.log("MODIFY SUCCESSFUL");
+      param="mode=LIST&UUID="+uuid.toString();
+      http_request(param,function(res){
+        if(res=="ERROR"){
+          alert("Fetch error");
+        }else{
+          updater(uuid,res);
+          console.log("success");
+        }
+      })
+    }
+  })
+
+}
+function edit_card(card_id){
+  //This function modifies the textual contents of the card.
+  if(mode==true){
+    alert("Do not fetch is activated.");
+  }else{
+  id_of_conflict=card_id;
+  var param="mode=FETCH&UUID="+uuid.toString()+"&card_id="+card_id.toString();
+  http_request(param,function(res){
+    if(res=="ERROR"){
+      alert("Cannot retrieve data.");
+    }else{
+      res=JSON.parse(res);
+      var year=res[1].toString().substring(0,4);
+      var month=res[1].toString().substring(5,7);
+      var day=res[1].toString().substring(8,10);
+      $('#date_picker_sgl').data('daterangepicker').setStartDate(month+"/"+day+"/"+year);
+      $('#date_picker_sgl').data('daterangepicker').setEndDate(month+"/"+day+"/"+year);
+      $('#edit_title').val(res[0]);
+      $('#edit_star').val(res[2]);
+      $('#edit_tags').val(res[3]);
+      $('#edit_address').val(res[4]);
+      $('#edit_allergens').val(res[5]);
+
+      UIkit.modal("#edit_modal").show();
+    }
+  });
+}
+
+
+}
+
+function copy_card(card_id){
+  //This function shows copyable the textual contents of the card.
+  var param="mode=FETCH&UUID="+uuid.toString()+"&card_id="+card_id.toString();
+  http_request(param, function(res){
+    if(res=="ERROR"){
+      alert("Cannot Copy");
+    }else{
+      res=JSON.parse(res);
+      var text_to_be_copied="";
+      res.forEach(function(elem){
+        text_to_be_copied+=elem;
+        text_to_be_copied+="\n";
+      });
+      UIkit.modal("#copy_modal").show();
+      copy_area.setAttribute('value',text_to_be_copied);
+
+
+
+    }
+  });
+}
+
+function actual_copy(){
+  //This function copies the selected textual contents into the user's clipboard.
+  copy_area.focus();
+  copy_area.select();
+  console.log(document.execCommand("copy"));
+}
+
+
+
+
+
+function plot_graph(){
+  //This function plots the data received.
+  var param="mode=STAR&UUID="+uuid.toString();
+  http_request(param,function(res){
+    if(res=="ERROR"){
+      alert("Graph cannot be plotted.");
+    }else{
+      if(res==[]||res=="[]"){
+        console.log("Nothing to draw");
+        if(res=="[]"){
+          res=[];
+        }
+      }else{
+        res=JSON.parse(res);
+      }
+      var label=[];
+      var dat=[];
+      res.forEach(function(elem){
+        label.push(elem[0]);
+        dat.push(elem[1]);
+      });
+      var canvas=document.getElementById("graph_body");
+      var feeling_chart = new Chart(canvas,{
+        type: 'line',
+        data:{datasets:[{
+          data: dat,
+          borderColor: "#3e95cd",
+          fill: false
+        }],
+      labels: label,
+    },
+    options: {
+      legend:{
+        display: false
+      },
+      scales:{
+      yAxes:[{
+        display: true,
+        ticks:{
+          max: 5
+        }
+      }]
+    }
+    }
+      });
+
+    }
+  });
+}
+
+
+
+
+
+function delete_card(card_id){
+  //This function deletes a card.
+  var params="mode=DELETE&UUID="+uuid.toString()+"&card_id="+card_id.toString();
+  if(mode==true){
+    alert("Do not fetch is activated.");
+  }else{
+  http_request(params,function(res){
+    console.log(res);
+    var params="mode=LIST&UUID="+uuid;
+    http_request(params,function(res){
+      updater(uuid,res);
+
+    });
+  });
+}
+
+}
+
+function set_location(){
+  //This function sets the default location.
+  var address=l_text.value;
+  var param="mode=SET_DEFAULT_LOCATION&UUID="+uuid+"&address="+address;
+  http_request(param,function(res){
+    console.log(res);
+  });
+}
+
+function universal_signout(){
+  //This function processes sign-out.
+  window.location=DOWNLOAD_SERVER_URL;
+}
+
+
+
+
+function ACCOUNT_DELETE(){
+  //This function deletes account.
+  var param="mode=DELETE_ACCOUNT&UUID="+uuid;
+  http_request(param,function(res){
+    console.log(res);
+  });
+  universal_signout();
+
+}
+
+function http_request(params,callback){
+  //All kinds of http request can be sent by using this function.
+  var response="";
+  console.log(params);
+  var http = new XMLHttpRequest();
+  http.open("POST", SERVER_URL);
+  //Send the header information with request
+  http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  http.onreadystatechange = function() {//If the state changes, call the function.
+    activity_l.style.display="none";
+    if(http.readyState == 4 && http.status == 200) {
+        response=http.responseText;
+        //updater(uuid);
+        console.log(response);
+        if(response=="ERROR"){
+          UIkit.notification({message: '<span uk-icon=\'icon: close\'></span> An error occured '});
+        }else if(response.substring(0,7)=="CREATED"){
+        UIkit.notification({message: '<span uk-icon=\'icon: check\'></span> Successfully updated'});
+      }
+      callback(response);
+    }
+    else if(http.status==400){
+      UIkit.notification({message: '<span uk-icon=\'icon: close\'></span> Server is not responding.'});
+    }else if(http.status==500){
+      UIkit.notification({message: '<span uk-icon=\'icon: close\'></span> Unsupported image type.'});
+      alert("Please choose another image. The current input is not supported at the moment.");
+    }
+
+  }
+  http.send(params);
+  activity_l.style.display="block";
+
+}
+
+
+function processdata(url1,url2,source) {
+  //Submits http request to create a card.
+      var image_url_food=url1;
+      var image_url_face=url2;
+      var params="";
+      if(source=='g'){
+      params = "mode="+"CREATE"+"&UUID="+uuid+"&image_url_food="+ image_url_food+"&image_url_face="+image_url_face+"&TOKEN="+encodeURIComponent(g_drive_TOKEN)+"&source="+source;
+    }else if(source=='o'){
+      params = "mode="+"CREATE"+"&UUID="+uuid+"&image_url_food="+ image_url_food+"&image_url_face="+image_url_face+"&TOKEN="+encodeURIComponent(TOKEN_MS)+"&source="+source;
+    }else if(source=='d'){
+      params = "mode="+"CREATE"+"&UUID="+uuid+"&image_url_food="+ image_url_food+"&image_url_face="+image_url_face+"&TOKEN=TOKEN&source="+source;
+    }
+      http_request(params,function(res){
+        console.log(res);
+        var params="mode=LIST&UUID="+uuid;
+        http_request(params,function(res){
+          updater(uuid,res);
+
+        });
+      });
+}
+
+
+function updater(uuid,list){
+  //processes and shows list of cards
+  console.log(list);
+  $('#card-field').html("");
+  var blobService = AzureStorage.createBlobServiceWithSas(blobUri, SAS_TOKEN);
+  console.log("Updater");
+  var id_list="";
+  if(list==[]|| list=="[]"){
+    document.getElementById("NO_CARDS").style.display="block";
+    $('#card_number').html("0 cards shown");
+  }
+  else if(list.length>0){
+    list=JSON.parse(list);
+    if(list.length>0){
+      document.getElementById("NO_CARDS").style.display="none";
+      var number=list.length;
+      if(number==1){
+        $('#card_number').html("1 card shown");
+      }else{
+        $('#card_number').html(number+" cards shown");
+      }
+      list.forEach(function(item){
+        azure_download(uuid,item+"_txt");
+      });
+    }
+
+
+  }else{
+  blobService.createContainerIfNotExists(uuid, function(error, result, response){
+    if(!error){
+      console.log(result);
+      if(result==true){
+        console.log("REGISTER");
+        var param="mode=REGISTER&UUID="+uuid+"&address=LONDON";
+        http_request(param,function(res){
+          console.log(res);
+        });
+      }
+      suggest(function(res){
+        var params="mode=LIST&UUID="+uuid;
+        http_request(params,function(res){
+          if(res=="ERROR"){
+            console.log("ERROR");
+          }else{
+          console.log(res);
+            id_list=JSON.parse(res);
+            console.log("ID list");
+            console.log(id_list[0]);
+          }
+          for (var i = 0; i<id_list.length; i++) {
+            azure_download(uuid,id_list[i]+"_txt");
+          }
+
+        });
+      });
+    }else{
+      console.log(error);
+      alert("Cannot connect to the data centre.");
+    }
+  });
+}
+
+}
+
+
+function azure_download(UUID,blob){
+  //Downloads a card.
+  $('#card-field').html("");
+  console.log("blob_download");
+  console.log(blob);
+  var blobService = blobService=AzureStorage.createBlobServiceWithSas(blobUri, SAS_TOKEN);
+  blobService.getBlobToText(UUID, blob,function(err,text,res){
+    if(!err){
+      console.log("BLOB");
+      console.log(text);
+      var lists_=$('#card-field');
+      lists_.append(text);
+      var real_blob=blob.substring(0,blob.length-4);
+      var dlink=blobUri+"/"+UUID+"/"+real_blob;
+      dlink+=SAS_TOKEN;
+      console.log(dlink);
+      document.getElementById(real_blob).src = dlink;
+    }else{
+      console.log("Download error");
+      console.log(err);
+      console.log("Unexpected error occured while downloading cards.");
+    }
+  });
+
+}
+
+
+
+/*
+________  ________  ________  ________  ________  ________     ___    ___
+|\   ___ \|\   __  \|\   __  \|\   __  \|\   __  \|\   __  \   |\  \  /  /|
+\ \  \_|\ \ \  \|\  \ \  \|\  \ \  \|\  \ \  \|\ /\ \  \|\  \  \ \  \/  / /
+\ \  \ \\ \ \   _  _\ \  \\\  \ \   ____\ \   __  \ \  \\\  \  \ \    / /
+ \ \  \_\\ \ \  \\  \\ \  \\\  \ \  \___|\ \  \|\  \ \  \\\  \  /     \/
+  \ \_______\ \__\\ _\\ \_______\ \__\    \ \_______\ \_______\/  /\   \
+   \|_______|\|__|\|__|\|_______|\|__|     \|_______|\|_______/__/ /\ __\
+                                                              |__|/ \|__|
+Dropbox support.
+*/
+options_food = {
+    success: function(file) {
+      console.log(file[0]["link"]);
+      url_source_storage.set_food(file[0]["link"],'d',file[0]["link"]);
+
+    },
+    cancel: function() {
+      console.log("cancelled");
+    },
+    linkType: "direct",
+    multiselect: false,
+    extensions: ['.png', '.jpg'],
+};
+
+options_face = {
+    success: function(file) {
+      console.log(file[0]["link"]);
+      url_source_storage.set_face(file[0]["link"],'d',file[0]["link"]);
+
+    },
+    cancel: function() {
+      console.log("cancelled");
+    },
+    linkType: "direct",
+    multiselect: false,
+    extensions: ['.png', '.jpg'],
+};
+
+var dropbox_button = Dropbox.createChooseButton(options_food);
+var dropbox_button2 = Dropbox.createChooseButton(options_face);
+document.getElementById("dropbox-container").appendChild(dropbox_button);
+document.getElementById("dropbox-container2").appendChild(dropbox_button2);
+
+
+
+ function search_function(){
+var PC_text=p_search.value;
+var Mobile=m_search.value;
+if(Mobile>PC_text){
+  PC_text=Mobile;
+}
+console.log(PC_text);
+var params="mode=SEARCH&UUID="+uuid+"&term="+PC_text;
+http_request(params,function(res){
+  updater(uuid,res);
+});
+
+ }
+/* ________  ________   _______   ________  ________  ___  ___      ___ _______
+|\   __  \|\   ___  \|\  ___ \ |\   ___ \|\   __  \|\  \|\  \    /  /|\  ___ \
+\ \  \|\  \ \  \\ \  \ \   __/|\ \  \_|\ \ \  \|\  \ \  \ \  \  /  / | \   __/|
+ \ \  \\\  \ \  \\ \  \ \  \_|/_\ \  \ \\ \ \   _  _\ \  \ \  \/  / / \ \  \_|/__
+  \ \  \\\  \ \  \\ \  \ \  \_|\ \ \  \_\\ \ \  \\  \\ \  \ \    / /   \ \  \_|\ \
+   \ \_______\ \__\\ \__\ \_______\ \_______\ \__\\ _\\ \__\ \__/ /     \ \_______\
+    \|_______|\|__| \|__|\|_______|\|_______|\|__|\|__|\|__|\|__|/       \|_______|
+
+OneDrive support
+*/
+
+
+ function handleOndriveAuthClick(event) {
+   launchOneDrivePicker();
+   odrive.style.display="block";
+ }
+
+ function launchOneDrivePicker(param){
+     var odOptions = {
+ clientId: MS_CLIENT_ID,
+ action: "download",
+ multiSelect: false,
+ openInNewWindow: true,
+ advanced: {filter: "photo,.jpeg",
+ filter:"photo,.jpg"},
+ success: function(files) {
+   console.log(files);
+   TOKEN_MS=files["accessToken"];
+   if(param=="food"){
+     url_source_storage.set_food(files["value"][0]["@microsoft.graph.downloadUrl"],'o',files["value"][0]["@microsoft.graph.downloadUrl"]);
+   }else if(param=="face"){
+     url_source_storage.set_face(files["value"][0]["@microsoft.graph.downloadUrl"],'o',files["value"][0]["@microsoft.graph.downloadUrl"]);
+   }
+
+ },
+ cancel: function() { /* cancel handler */ },
+ error: function(e) {
+   UIkit.notification({message: '<span uk-icon=\'icon: close\'></span> OneDrive Error '});
+ }
+};
+     OneDrive.open(odOptions);
+}
+
+
+
+
+/*
+________  ________  ________  ________  ___       _______
+|\   ____\|\   __  \|\   __  \|\   ____\|\  \     |\  ___ \
+\ \  \___|\ \  \|\  \ \  \|\  \ \  \___|\ \  \    \ \   __/|
+\ \  \  __\ \  \\\  \ \  \\\  \ \  \  __\ \  \    \ \  \_|/__
+ \ \  \|\  \ \  \\\  \ \  \\\  \ \  \|\  \ \  \____\ \  \_|\ \
+  \ \_______\ \_______\ \_______\ \_______\ \_______\ \_______\
+   \|_______|\|_______|\|_______|\|_______|\|_______|\|_______|
+
+Google Drive support
+*/
+
+//NEW APPROACH (FILE PICKER)
+var developerKey = GOOGLE_DEVELOPER_KEY;
+
+var clientId = GOOGLE_CLIENT_ID;
+
+var appId=GOOGLE_APP_ID;
+
+    var scope = ['https://www.googleapis.com/auth/drive.file'];
+
+    var pickerApiLoaded = false;
+    var oauthToken;
+
+    function onApiLoad(param) {
+        gapi.load('auth', {'callback': onAuthApiLoad});
+        gapi.load('picker', {'callback': onPickerApiLoad});
+        g_status=param;
+    }
+
+    function onAuthApiLoad() {
+        window.gapi.auth.authorize(
+                {
+                    'client_id': clientId,
+                    'scope': scope,
+                    'immediate': false
+                },
+        handleAuthResult);
+    }
+
+    function onPickerApiLoad() {
+        pickerApiLoaded = true;
+        createPicker();
+    }
+
+    function handleAuthResult(authResult) {
+        if (authResult && !authResult.error) {
+            oauthToken = authResult.access_token;
+            createPicker();
+        }
+    }
+    var picker;
+
+    //Google picker utilised for Google Drive explorer
+    function createPicker() {
+        if (pickerApiLoaded && oauthToken) {
+            picker = new google.picker.PickerBuilder().
+                    addViewGroup(
+                            new google.picker.ViewGroup(google.picker.ViewId.DOCS_IMAGES)).
+                    setOAuthToken(oauthToken).
+                    setDeveloperKey(developerKey).
+                    setCallback(pickerCallback).
+                    build();
+            picker.setVisible(true);
+            list_view.style.visibility="hidden";//need to be removed.
+        }
+    }
+
+
+    //Callback from picker
+    function pickerCallback(data) {
+      if(data["action"]=="picked"||data["action"]=="cancel"){
+        list_view.style.visibility="visible";
+        console.log("Executed");
+        if(data["action"]=="picked"){
+          picker.setVisible(false);
+          picker.dispose();
+        }
+      }
+
+        console.log(data);
+        var url = 'nothing';
+        var name = 'nothing';
+        if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+            var doc = data[google.picker.Response.DOCUMENTS][0];
+            url = doc[google.picker.Document.URL];
+            name = doc.name;
+            g_drive_TOKEN=oauthToken;
+            var contents_url="https://drive.google.com/uc?id="+doc.id+"&export=download";
+            if(g_status=='food'){
+              url_source_storage.set_food(doc.id,'g',contents_url);
+            }else if(g_status=='face'){
+              url_source_storage.set_face(doc.id,'g',contents_url);
+            }else{
+              console.log("Error in Google Drive operation");
+            }
+        }
+    }
+
+
+
+
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
+
+  </body>
+  </html>

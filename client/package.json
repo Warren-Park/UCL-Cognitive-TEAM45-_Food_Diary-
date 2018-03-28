@@ -1,0 +1,28 @@
+{
+  "name": "file-system",
+  "version": "1.0.0",
+  "description": "- Github repository for the Microsoft Cognitive Node.js app with cloud storage support project. - Webapp URL: food.azurewebsites.net",
+  "main": "card_generator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Warren-Park/UCL_TEAM_45.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Warren-Park/UCL_TEAM_45/issues"
+  },
+  "homepage": "https://github.com/Warren-Park/UCL_TEAM_45#readme",
+  "dependencies": {
+    "azure-storage": "^2.8.0",
+    "browserify": "^16.1.0",
+    "factor-bundle": "^2.5.0",
+    "fs": "0.0.1-security",
+    "grunt-image-autoresize": "0.0.5",
+    "http": "0.0.0",
+    "promise-retry": "^1.1.1"
+  }
+}

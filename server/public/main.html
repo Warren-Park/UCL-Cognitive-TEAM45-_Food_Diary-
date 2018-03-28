@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Food Diary | Microsoft Cognitive</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/css/uikit.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/js/uikit.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.39/js/uikit-icons.min.js"></script>
+  <link rel="stylesheet" href="../main_style.css" />
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+  <body>
+
+    <script>
+    UIkit.scroll(totop, duration:1000);
+    </script>
+      <div uk-sticky="sel-target: .uk-navbar-container; cls-active: uk-navbar-sticky">
+    <nav class="uk-navbar-container" uk-navbar>
+
+        <div class="uk-navbar-left">
+
+            <ul class="uk-navbar-nav">
+                <li>
+                    <a href="#"><span class="uk-margin-small-right" uk-icon="icon: menu"></span>&nbsp;Menu&nbsp;</a>
+                    <div class="uk-navbar-dropdown">
+                      <ul class="uk-nav uk-navbar-dropdown-nav">
+                          <li class="uk-nav-header"><span class="uk-margin-small-right" uk-icon="icon: search"></span>Search</li>
+                          <li><a href="main/date.html"><span class="uk-margin-small-right" uk-icon="icon: calendar"></span>By date</a></li>
+                            <li><a href="main/maps.html"><span class="uk-margin-small-right" uk-icon="icon: location"></span>By location</a></li>
+                              <li><a href="main/list.html"><span class="uk-margin-small-right" uk-icon="icon: list"></span>List view </a></li>
+                          <li class="uk-nav-header"><span class="uk-margin-small-right" uk-icon="icon: star"></span>Suggestions</li>
+                          <li><a href="main/category.html"><span class="uk-margin-small-right" uk-icon="icon: thumbnails"></span>By category</a></li>
+                          <li><a href="main/maps.html"><span class="uk-margin-small-right" uk-icon="icon: location"></span>By location</a></li>
+                      </ul>
+                    </div>
+                </li>
+                <li>
+                    <a href="#" uk-icon="icon: plus"></a>
+                    <div class="uk-navbar-dropdown">
+                      <ul class="uk-nav uk-navbar-dropdown-nav">
+                          <li class="uk-active"><a href="#">Add from the Cloud Storage</a></li>
+                          <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: cloud-download"></span>OneDrive</a></li>
+                          <li><a href="devs.html"><span class="uk-margin-small-right" uk-icon="icon: google"></span>Google Drive</a></li>
+                          <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: cloud-download"></span>Dropbox</a></li>
+                      </ul>
+                </li>
+            </ul>
+
+        </div>
+
+        <div class="uk-navbar-right">
+
+            <ul class="uk-navbar-nav">
+                <li>
+                    <a href="#" id='uname'>Lorem, Ipsum &nbsp;
+                      <div class="uk-grid-small uk-flex-middle" uk-grid>
+            <div class="uk-width-auto">
+                <img class="uk-border-circle" width="40" height="40" src="/images/img/logo.png">
+            </div>
+          </div>
+        </a>
+                    <div class="uk-navbar-dropdown">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <li class="uk-active"><a href="#"><span class="uk-margin-small-right" uk-icon="icon: user"></span>Account</a></li>
+                            <div class="uk-offcanvas-content">
+                            <li><a uk-toggle="target: #offcanvas-flip"><span class="uk-margin-small-right" uk-icon="icon: settings"></span> Settings</a></li>
+                            <div id="offcanvas-flip" uk-offcanvas="flip: true; mode:push; overlay: true;">
+                                 <div class="uk-offcanvas-bar">
+
+                                 <button class="uk-offcanvas-close" type="button" uk-close></button>
+
+                                 <h3>Account settings</h3>
+
+                                 <p></p>
+                                 <div class="uk-child-width-1-2@s" uk-grid>
+    <div>
+        <div uk-grid>
+            <div class="uk-width-auto@m">
+                <ul class="uk-tab-left" uk-tab="connect: #component-tab-left; animation: uk-animation-fade">
+                    <li><a href="#">Auto fetch</a></li>
+                    <li><a href="#">Manual fetch</a></li>
+                    <li><a href="#">Do not fetch</a></li>
+                </ul>
+            </div>
+            <div class="uk-width-expand@m">
+                <ul id="component-tab-left" class="uk-switcher">
+                    <li>The web app automatically syncs the images.</li>
+                    <li>You need to select images to be uploaded.</li>
+                    <li>The web app will not update any images.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <p></p>
+    <a class="uk-button uk-button-danger uk-align-center" href="#modal" uk-toggle>Delete Account</a>
+    <div id="modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Delete account</h2>
+        <p>If you delete the account, you will no longer be able to access the information generated by this web app.</p>
+        <p class="uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+            <button class="uk-button uk-button-primary" type="button">Continue</button>
+        </p>
+    </div>
+</div>
+
+                                 </div>
+                               </div>
+                            </div>
+                            <li><a type="button" onclick="UIkit.notification({message: '<span uk-icon=\'icon: check\'></span> Signed out'})"><span class="uk-margin-small-right" uk-icon="icon: sign-out"></span> Sign out</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+
+        </div>
+
+    </nav>
+  </div>
+</div>
+
+
+<div uk-scrollspy="target: > div; cls:uk-animation-fade; delay: 500">
+  <p2></p2>
+<h2 class="uk-heading-primary" align="middle">Lorem's Food Diary</h2>
+<p2></p2>
+<div class="uk-visible-toggle">
+  <div class="uk-card uk-card-default uk-grid-collapse uk-child-width-1-2@s uk-margin" uk-grid>
+    <div class="uk-card-media-left uk-cover-container">
+        <img src="/images/img/food1.jpg" alt="" uk-cover>
+        <canvas width="600" height="400"></canvas>
+    </div>
+    <div>
+        <div class="uk-card-body">
+            <h3 class="uk-card-title">A PIZZA SITTING ON A PAN</h3> 25/01/2018
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star"></span>
+            <span class="fa fa-star"></span>
+            <p>Feeling: 😀<br></br>Location: Naples, Italy<br></br>Tags: pizza,food,indoor,sitting,pan,top,table,plate,small,tray,<br></br>stove,counter,oven,glass,cheese,kitchen,holding,cooked,cooking,white</p>
+            <br></br>
+            Comments: Lorem Ipsum.
+            <p></p>
+            <ul class="uk-hidden-hover uk-iconnav">
+                               <li><a href="#" uk-icon="icon: pencil"></a></li>
+                               <li><a href="#" uk-icon="icon: copy"></a></li>
+                               <li><a href="#" uk-icon="icon: trash"></a></li>
+                           </ul>
+        </div>
+    </div>
+</div>
+
+             </div>
+
+
+<p2></p2>
+<div class="uk-visible-toggle">
+<div class="uk-card uk-card-default uk-grid-collapse uk-child-width-1-2@s uk-margin" uk-grid>
+    <div class="uk-card-media-left uk-cover-container">
+        <img src="/images/img/food2.jpg" alt="" uk-cover>
+        <canvas width="600" height="400"></canvas>
+    </div>
+    <div>
+        <div class="uk-card-body">
+            <h3 class="uk-card-title">A PLATE OF FOOD AND A GLASS OF WINE</h3>25/01/2018
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <p>Feeling: 😀<br></br>Location: London, United Kingdom<br></br>Tags: grass,plate,table,food,outdoor,sitting,bowl,glass,wine,cup,front,coffee,<br></br>small,black,filled,red,holding,cake,green,field,white,standing</p>
+            <p></p>
+            <ul class="uk-hidden-hover uk-iconnav">
+                               <li><a href="#" uk-icon="icon: pencil"></a></li>
+                               <li><a href="#" uk-icon="icon: copy"></a></li>
+                               <li><a href="#" uk-icon="icon: trash"></a></li>
+                           </ul>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<p2></p2>
+<div class="uk-visible-toggle">
+<div class="uk-card uk-card-default uk-grid-collapse uk-child-width-1-2@s uk-margin" uk-grid>
+    <div class="uk-card-media-left uk-cover-container">
+        <img src="/images/img/food3.jpg" alt="" uk-cover>
+        <canvas width="600" height="400"></canvas>
+    </div>
+    <div>
+        <div class="uk-card-body">
+            <h3 class="uk-card-title">A CLOSE UP OF A PIECE OF CAKE ON A TABLE</h3>25/01/2018
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star" style="color: orange;"></span>
+            <span class="fa fa-star"></span>
+            <span class="fa fa-star"></span>
+            <p>Feeling: 😀<br></br>Location: San Francisco
+            <br></br> Allergens: Soya
+            <br></br>Tags: table,indoor,food,plate,sitting,cake,window,small,top,wooden,piece,<br></br>white,sandwich,cutting,close,fruit,banana,cut,bowl,board,blue</p>
+            <p></p>
+            <ul class="uk-hidden-hover uk-iconnav">
+                               <li><a href="#" uk-icon="icon: pencil"></a></li>
+                               <li><a href="#" uk-icon="icon: copy"></a></li>
+                               <li><a href="#" uk-icon="icon: trash"></a></li>
+                           </ul>
+        </div>
+    </div>
+</div class="uk-align-center">
+<span class="uk-badge">&nbsp;10+</span>
+<a href="" uk-totop uk-scroll class="uk-align-center">GO TO THE TOP&nbsp;</a>
+</div>
+</div>
+
+<p></p>
+
+<div id="edit">
+  <div class="uk-modal-dialog uk-modal-body">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <h2 class="uk-modal-title">Delete account</h2>
+      <p>If you delete the account, you will no longer be able to access the information generated by this web app.</p>
+      <p class="uk-text-right">
+          <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
+          <button class="uk-button uk-button-primary" type="button">Continue</button>
+      </p>
+  </div>
+</div>
+
+
+
+  </body>
+  </html>
