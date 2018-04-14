@@ -700,13 +700,20 @@ function azure__emotion(image_face,callback){
 }
 function real_coordinates(LA_REF,LAT,LO_REF,LONG,callback){
   //This function coverts coordinates in hours, minutes, seconds form into double number.
-  var real_LAT=LAT[0]+LAT[1]/60+LAT[2]/3600;
-  if(LA_REF=="S"){
-    real_LAT*=(-1);
-  }
-  var real_LONG=LONG[0]+LONG[1]/60+LONG[2]/3600;
-  if(LO_REF=="W"){
-    real_LONG*=(-1);
+  var real_LAT;
+  var real_LONG;
+  if(LAT!=undefined){
+    var real_LAT=LAT[0]+LAT[1]/60+LAT[2]/3600;
+    if(LA_REF=="S"){
+      real_LAT*=(-1);
+    }
+    var real_LONG=LONG[0]+LONG[1]/60+LONG[2]/3600;
+    if(LO_REF=="W"){
+      real_LONG*=(-1);
+    }
+  }else{
+    real_LAT=51.523856;
+    real_LONG=-0.131636;
   }
   callback([real_LAT,real_LONG]);
   
